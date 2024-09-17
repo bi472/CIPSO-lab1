@@ -1,43 +1,64 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Параметры синусоидальных сигналов
-A = 1  # амплитуда синусоиды
-frequencies = np.logspace(0, 2, 500)  # частоты от 1 до 100 Гц (логарифмическая шкала)
-t = np.linspace(0, 1, 1000)  # временная шкала для синусоидальных сигналов
-phi = 0  # начальная фаза (нулевая)
+# Параметры для расчета
+n = 20
+alpha = 0.5
+impulse = np.zeros(n)
+impulse[0] = 1  # единичный импульс для фильтров
 
-# ФЧХ нерекурсивного фильтра по формуле:
-# arg(H(e^{jω})) = -arctan(sin(ω) / (1 + cos(ω)))
-def non_recursive_phase_response(omega):
-    return -np.arctan(np.sin(omega) / (1 + np.cos(omega)))
+# Функции для расчета импульсной характеристики
+def fir_impulse_response(impulse):
+    h = np.zeros_like(impulse)
+    h[0] = impulse[0] / 2
+    for i in range(1, len(impulse)):
+        h[i] = (impulse[i] + impulse[i - 1]) / 2
+    return h
 
-# ФЧХ рекурсивного фильтра по формуле:
-# arg(H(e^{jω})) = -arctan(a sin(ω) / (1 + a cos(ω)))
-def recursive_phase_response(omega, alpha=0.5):
-    return -np.arctan(alpha * np.sin(omega) / (1 + alpha * np.cos(omega)))
+def iir_impulse_response(impulse, alpha=0.5):
+    h = np.zeros_like(impulse)
+    h[0] = impulse[0]
+    for i in range(1, len(impulse)):
+        h[i] = impulse[i] + alpha * h[i - 1]
+    return h
 
-# Рассчитываем фазо-частотные характеристики
-phase_non_recursive = non_recursive_phase_response(2 * np.pi * frequencies)
-phase_recursive = recursive_phase_response(2 * np.pi * frequencies)
+# Получаем импульсные характеристики для обоих фильтров
+fir_impulse = fir_impulse_response(impulse)
+iir_impulse = iir_impulse_response(impulse)
 
-# Строим графики фазо-частотных характеристик
-plt.figure(figsize=(10, 6))
+# Вычисляем фазо-частотную характеристику через FFT
+fir_phase_response = np.angle(np.fft.fft(fir_impulse))[:10]
+iir_phase_response = np.angle(np.fft.fft(iir_impulse))[:10]
 
-# Нерекурсивный фильтр
-plt.plot(frequencies, phase_non_recursive, label='Нерекурсивный фильтр', color='blue')
+# Построим графики
+plt.figure(figsize=(10, 5))
 
-# Рекурсивный фильтр
-plt.plot(frequencies, phase_recursive, label='Рекурсивный фильтр', color='green')
+# График для КИХ-фильтра
+plt.subplot(2, 1, 1)
+plt.title("КИХ-фильтр (FIR): Фазо-частотная характеристика")
+plt.plot(fir_phase_response, 'r.-')
+plt.ylabel("Фаза (рад)")
+plt.xlabel("Частота (рад/с)")
 
-# Оформление графика
-plt.xscale('log')  # логарифмическая шкала частоты
-plt.xlabel('Частота (Гц)')
-plt.ylabel('Фаза (рад)')
-plt.title('Фазо-частотная характеристика фильтров')
-plt.grid(True)
-plt.legend()
+# График для БИХ-фильтра
+plt.subplot(2, 1, 2)
+plt.title("БИХ-фильтр (IIR): Фазо-частотная характеристика")
+plt.plot(iir_phase_response, 'g.-')
+plt.ylabel("Фаза (рад)")
+plt.xlabel("Частота (рад/с)")
 
-# Отображаем график
+# Проверяем корректность фазо-частотной характеристики
+assert fir_phase_response.shape[0] == iir_phase_response.shape[0] == 10, f"Bad PR shape. Must be N//2."
+_ideal_fir_pr = np.array([-0., -0.15707963, -0.31415927, -0.4712389, -0.62831853, 
+                          -0.78539816, -0.9424778, -1.09955743, -1.25663706, -1.41371669])
+assert np.allclose(fir_phase_response, _ideal_fir_pr), f"Bad fir PR. diff is {np.abs(fir_phase_response - _ideal_fir_pr).sum()}"
+
+_ideal_iir_pr = np.array([-0., -0.28649379, -0.45845783, -0.52023287, -0.51233491, 
+                          -0.46364761, -0.39071251, -0.30300249, -0.20627323, -0.10433379])
+assert np.allclose(iir_phase_response, _ideal_iir_pr), f"Bad iir PR. diff is {np.abs(iir_phase_response - _ideal_iir_pr).sum()}"
+
+print("All ok!")
+
+# Отображаем графики
 plt.tight_layout()
 plt.show()

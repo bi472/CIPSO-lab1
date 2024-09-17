@@ -3,50 +3,57 @@ import matplotlib.pyplot as plt
 
 # Определяем единичный скачок длиной 20 отсчетов
 n = 20
-step = np.ones(n)
+step = np.ones(n)  # единичный скачок: все значения равны 1
 
-# Импульсная характеристика нерекурсивного фильтра по формуле:
-# h(n) = (δ(n) + δ(n - 1)) / 2
-def non_recursive_impulse_response(impulse):
-    h = np.zeros_like(impulse)
-    for i in range(1, len(impulse)):
-        h[i] = (impulse[i] + impulse[i - 1]) / 2
+# Переходная характеристика нерекурсивного фильтра
+def fir_step_response(step):
+    h = np.zeros_like(step)
+    # Первый отсчет: среднее между текущим скачком (1) и нулем перед ним
+    h[0] = step[0] / 2
+    # Цикл для всех остальных отсчетов
+    for i in range(1, len(step)):
+        h[i] = (step[i] + step[i - 1]) / 2
     return h
 
-# Импульсная характеристика рекурсивного фильтра по формуле:
-# h(n) = δ(n) + a δ(n - 1)
-def recursive_impulse_response(impulse, alpha=0.5):
-    h = np.zeros_like(impulse)
-    h[0] = impulse[0]  # стартовое значение
-    for i in range(1, len(impulse)):
-        h[i] = impulse[i] + alpha * h[i - 1]
+# Переходная характеристика рекурсивного фильтра
+def iir_step_response(step, alpha=0.5):
+    h = np.zeros_like(step)
+    h[0] = step[0]  # стартовое значение
+    for i in range(1, len(step)):
+        h[i] = step[i] + alpha * h[i - 1]
     return h
 
-# Применяем фильтры к единичному скачку
+# Получаем переходные характеристики для обоих фильтров
+fir_response = fir_step_response(step)
+iir_response = iir_step_response(step)
 
-# Импульсная характеристика для нерекурсивного фильтра на единичном скачке
-step_response_non_recursive = non_recursive_impulse_response(step)
-
-# Импульсная характеристика для рекурсивного фильтра на единичном скачке
-step_response_recursive = recursive_impulse_response(step)
-
-# Строим графики для единичного скачка
+# Построим графики в одном окне
 plt.figure(figsize=(10, 5))
 
-# Нерекурсивный фильтр
-plt.subplot(1, 2, 1)
-plt.stem(range(n), step_response_non_recursive, linefmt='b-', markerfmt='bo', basefmt='r-')
-plt.title('Переходная характеристика нерекурсивного фильтра (единичный скачок)')
-plt.xlabel('Отсчеты')
-plt.ylabel('Амплитуда')
+# График для нерекурсивного фильтра
+plt.subplot(2, 1, 1)
+plt.title("Нерекурсивный фильтр")
+plt.plot(step, 'bo-', label='Скачок')
+plt.plot(fir_response, 'r.-', label='Фильтр')
+plt.legend()
+plt.axis([-0.1, len(step), 0, 1.2])
 
-# Рекурсивный фильтр
-plt.subplot(1, 2, 2)
-plt.stem(range(n), step_response_recursive, linefmt='g-', markerfmt='go', basefmt='r-')
-plt.title('Переходная характеристика рекурсивного фильтра (единичный скачок)')
-plt.xlabel('Отсчеты')
-plt.ylabel('Амплитуда')
+# График для рекурсивного фильтра
+plt.subplot(2, 1, 2)
+plt.title("Рекурсивный фильтр")
+plt.plot(step, 'bo-', label='Скачок')
+plt.plot(iir_response, 'g.-', label='Фильтр')
+plt.legend()
+plt.axis([-0.1, len(step), 0, 2.2])
+
+# Проверяем корректность фильтров
+assert step.shape[0] == 20, "Bad step shape"
+assert fir_response[0] == 0.5 and (fir_response[1:] == 1).all(), "Bad FIR."
+assert iir_response[0] == 1 and iir_response[1] == 1.5 and iir_response[2] == 1.75 and \
+       iir_response.mean().round() == 2 and (iir_response < 2).all(), "Bad IIR."
+print("All ok!")
 
 # Отображаем графики
 plt.tight_layout()
 plt.show()
+ 
