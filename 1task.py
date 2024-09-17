@@ -33,19 +33,19 @@ iir_response = iir_impulse_response(impulse)
 # Построим графики в одном окне
 plt.figure(figsize=(10, 5))
 
-# График для нерекурсивного фильтра
+# First subplot for non-recursive filter
 plt.subplot(2, 1, 1)
 plt.title("Нерекурсивный фильтр")
-plt.plot(impulse, 'bo-', label='Импульс')
-plt.plot(fir_response, 'r.-', label='Фильтр')
+plt.stem(impulse, label='Импульс', linefmt='b-', markerfmt='bo', basefmt='b-')
+plt.stem(fir_response, label='Фильтр', linefmt='r-', markerfmt='r.', basefmt='r-')
 plt.legend()
 plt.axis([-0.1, len(impulse), -0.1, 1.2])
 
-# График для рекурсивного фильтра
+# Second subplot for recursive filter
 plt.subplot(2, 1, 2)
 plt.title("Рекурсивный фильтр")
-plt.plot(impulse, 'bo-', label='Импульс')
-plt.plot(iir_response, 'g.-', label='Фильтр')
+plt.stem(impulse, label='Импульс', linefmt='b-', markerfmt='bo', basefmt='b-')
+plt.stem(iir_response, label='Фильтр', linefmt='g-', markerfmt='g.', basefmt='g-')
 plt.legend()
 plt.axis([-0.1, len(impulse), -0.1, 1.2])
 

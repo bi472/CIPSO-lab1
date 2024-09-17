@@ -33,16 +33,16 @@ plt.figure(figsize=(10, 5))
 # График для нерекурсивного фильтра
 plt.subplot(2, 1, 1)
 plt.title("Нерекурсивный фильтр")
-plt.plot(step, 'bo-', label='Скачок')
-plt.plot(fir_response, 'r.-', label='Фильтр')
+plt.stem(step, 'bo-', label='Скачок')
+plt.stem(fir_response, 'r.-', label='Фильтр')
 plt.legend()
 plt.axis([-0.1, len(step), 0, 1.2])
 
 # График для рекурсивного фильтра
 plt.subplot(2, 1, 2)
 plt.title("Рекурсивный фильтр")
-plt.plot(step, 'bo-', label='Скачок')
-plt.plot(iir_response, 'g.-', label='Фильтр')
+plt.stem(step, 'bo-', label='Скачок')
+plt.stem(iir_response, 'g.-', label='Фильтр')
 plt.legend()
 plt.axis([-0.1, len(step), 0, 2.2])
 
